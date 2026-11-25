@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#172554">
+<title>Facebook Report Tool</title>
+<style>
+:root{--navy:#172554;--blue:#1877f2;--bg:#f3f6fb;--ink:#172033;--muted:#64748b;--line:#e2e8f0}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#eef4ff,#f8fafc);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);min-height:100vh}
+header{background:var(--navy);color:white;padding:22px max(18px,calc((100% - 1000px)/2));}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:12px;background:var(--blue);display:grid;place-items:center;font-weight:900;font-size:25px}.brand small{display:block;color:#bfdbfe;margin-top:3px}
+main{max-width:1000px;margin:22px auto;padding:0 14px 100px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card,.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 5px 18px #0f172a0a}.stat strong{display:block;font-size:26px}.stat span,.muted{color:var(--muted);font-size:13px}
+.layout{display:grid;grid-template-columns:220px 1fr;gap:14px;margin-top:16px}.nav button{display:block;width:100%;text-align:left;margin:0 0 8px}.btn{border:1px solid var(--line);background:white;color:var(--ink);border-radius:10px;padding:10px 13px;font-weight:650;cursor:pointer}.btn.primary{background:var(--blue);color:white;border-color:var(--blue)}.btn.danger{color:#b91c1c}.btn:disabled{opacity:.45;cursor:not-allowed}
+h2{font-size:20px;margin:0 0 14px}h3{font-size:16px;margin:0 0 10px}label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:white;color:var(--ink)}textarea{min-height:110px;resize:vertical}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.output{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:13px;font-size:13px;line-height:1.55;max-height:340px;overflow:auto}
+.report{border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:10px}.report-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.pill{font-size:11px;border-radius:99px;padding:4px 8px;background:#fef3c7;color:#92400e}.pill.sent{background:#dbeafe;color:#1d4ed8}.pill.done{background:#dcfce7;color:#166534}
+.hidden{display:none!important}.notice{font-size:12px;color:var(--muted);line-height:1.5;margin-top:12px}
+#mini{position:fixed;z-index:9999;right:14px;bottom:16px;width:min(330px,calc(100vw - 28px));background:white;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 16px 50px #0f172a38;overflow:hidden}
+#mini.minimized{width:190px}#mini.minimized .mini-body{display:none}
+.mini-bar{background:var(--navy);color:white;padding:10px 12px;display:flex;align-items:center;gap:8px;cursor:move;touch-action:none;user-select:none}
+.mini-title{font-weight:800;font-size:13px;flex:1}.winbtn{border:0;background:#ffffff20;color:white;border-radius:6px;width:25px;height:24px;cursor:pointer}
+.mini-body{padding:12px}.mini-body .btn{width:100%;margin:4px 0}.mini-body p{font-size:12px;color:var(--muted);margin:0 0 8px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(max-width:680px){.layout{grid-template-columns:1fr}.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.nav button{font-size:12px;text-align:center;padding:10px 4px;margin:0}.stats{gap:7px}.card{padding:12px}.stat strong{font-size:22px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">f</div><div><strong>FACEBOOK REPORT TOOL</strong><small>Quản lý hồ sơ · Soạn nội dung · Lịch sử</small></div></div></header>
+<main>
+  <div class="stats">
+    <div class="card stat"><strong id="total">0</strong><span>Tổng hồ sơ</span></div>
+    <div class="card stat"><strong id="pending">0</strong><span>Chưa gửi</span></div>
+    <div class="card stat"><strong id="completed">0</strong><span>Đã xử lý</span></div>
+  </div>
+  <div class="layout">
+    <nav class="card nav">
+      <button class="btn primary" data-page="create">＋ Tạo báo cáo</button>
+      <button class="btn" data-page="history">▤ Lịch sử</button>
+      <button class="btn" data-page="admin">⚙ Quản trị</button>
+    </nav>
+    <section class="panel">
+      <div id="page-create">
+        <h2>Tạo nội dung báo cáo</h2>
+        <p class="muted">Soạn báo cáo dựa trên thông tin và bằng chứng có thật. Kiểm tra kỹ trước khi gửi qua kênh chính thức của Meta.</p>
+        <label for="account">Tên tài khoản bị báo cáo</label><input id="account" placeholder="Tên hiển thị hoặc tên trang">
+        <label for="profile">Liên kết hồ sơ / Trang Facebook</label><input id="profile" type="url" placeholder="https://www.facebook.com/...">
+        <label for="category">Danh mục vấn đề</label>
+        <select id="category">
+          <option>Mạo danh</option><option>Lừa đảo hoặc gian lận</option><option>Quấy rối hoặc bắt nạt</option><option>Spam</option><option>Vi phạm quyền riêng tư</option><option>Vi phạm bản quyền</option><option>Nội dung khác</option>
+        </select>
+        <label for="affected">Người / tổ chức bị ảnh hưởng (nếu có)</label><input id="affected" placeholder="Tên cá nhân hoặc tổ chức">
+        <label for="facts">Mô tả sự việc và bằng chứng</label><textarea id="facts" placeholder="Nêu hành vi cụ thể, thời gian, nội dung liên quan và bằng chứng bạn có..."></textarea>
+        <div class="actions"><button class="btn primary" id="generate">Tạo nội dung</button><button class="btn" id="clear">Xóa biểu mẫu</button></div>
+        <div id="result-wrap" class="hidden">
+          <label>Nội dung dự thảo</label><div id="result" class="output"></div>
+          <div class="actions"><button class="btn" id="copy">Sao chép</button><button class="btn primary" id="save">Lưu hồ sơ</button></div>
+        </div>
+        <p class="notice">Công cụ này chỉ hỗ trợ soạn thảo và quản lý hồ sơ. Không tự động gửi báo cáo, không xác minh vi phạm và không liên kết nội bộ với Meta.</p>
+      </div>
+      <div id="page-history" class="hidden">
+        <h2>Lịch sử hồ sơ</h2>
+        <div class="row"><select id="filter"><option value="all">Tất cả trạng thái</option><option>Chưa gửi</option><option>Đã gửi</option><option>Đã xử lý</option></select><button class="btn" id="export">Xuất CSV</button></div>
+        <div id="reports"></div>
+      </div>
+      <div id="page-admin" class="hidden">
+        <h2>Quản trị cục bộ</h2>
+        <p class="muted">Dữ liệu được lưu trong bộ nhớ trình duyệt trên thiết bị hiện tại bằng localStorage.</p>
+        <div class="card"><h3>Thống kê</h3><p id="admin-stats" class="muted"></p></div>
+        <div class="actions"><button class="btn" id="backup">Sao lưu JSON</button><button class="btn danger" id="delete-all">Xóa toàn bộ dữ liệu</button></div>
+        <p class="notice">Đây chưa phải hệ thống Admin nhiều người dùng: không có tài khoản, phân quyền, máy chủ hoặc đồng bộ giữa các thiết bị. Không lưu thông tin nhạy cảm không cần thiết.</p>
+      </div>
+    </section>
+  </div>
+</main>
+<div id="mini">
+  <div class="mini-bar" id="dragbar"><span>f</span><span class="mini-title">FB REPORT MINI</span><button class="winbtn" id="minimize" aria-label="Thu nhỏ">−</button><button class="winbtn" id="expand" aria-label="Mở trang">↗</button><button class="winbtn" id="close" aria-label="Ẩn cửa sổ">×</button></div>
+  <div class="mini-body"><p>Truy cập nhanh các chức năng</p><button class="btn primary" data-goto="create">＋ Tạo báo cáo</button><button class="btn" data-goto="history">▤ Lịch sử</button><button class="btn" data-goto="admin">⚙ Admin</button></div>
+</div>
+<footer>Facebook Report Tool · Công cụ độc lập, không thuộc Meta Platforms, Inc.</footer>
+<script>
+const $=id=>document.getElementById(id);
+let records=JSON.parse(localStorage.getItem('fb-report-records')||'[]'),draft='';
+function persist(){localStorage.setItem('fb-report-records',JSON.stringify(records));render()}
+function render(){
+ $('total').textContent=records.length;
+ $('pending').textContent=records.filter(x=>x.status==='Chưa gửi').length;
+ $('completed').textContent=records.filter(x=>x.status==='Đã xử lý').length;
+ $('admin-stats').textContent=`Tổng: ${records.length} · Chưa gửi: ${records.filter(x=>x.status==='Chưa gửi').length} · Đã gửi: ${records.filter(x=>x.status==='Đã gửi').length} · Đã xử lý: ${records.filter(x=>x.status==='Đã xử lý').length}`;
+ const filter=$('filter').value;
+ const shown=records.filter(x=>filter==='all'||x.status===filter);
+ $('reports').innerHTML=shown.length?'':'<p class="muted">Chưa có hồ sơ phù hợp.</p>';
+ shown.forEach(x=>{
+  const el=document.createElement('article');el.className='report';
+  const head=document.createElement('div');head.className='report-head';
+  const name=document.createElement('strong');name.textContent=x.account;
+  const pill=document.createElement('span');pill.className='pill '+(x.status==='Đã gửi'?'sent':x.status==='Đã xử lý'?'done':'');pill.textContent=x.status;
+  head.append(name,pill);el.append(head);
+  const info=document.createElement('p');info.className='muted';info.textContent=x.category+' · '+new Date(x.created).toLocaleString('vi-VN');el.append(info);
+  const actions=document.createElement('div');actions.className='actions';
+  const cp=document.createElement('button');cp.className='btn';cp.textContent='Sao chép';cp.onclick=()=>copyText(x.content);
+  const open=document.createElement('button');open.className='btn';open.textContent='Mở liên kết';open.onclick=()=>window.open(x.url,'_blank','noopener');
+  const status=document.createElement('button');status.className='btn';status.textContent='Đổi trạng thái';status.onclick=()=>{let opts=['Chưa gửi','Đã gửi','Đã xử lý'];x.status=opts[(opts.indexOf(x.status)+1)%opts.length];persist()};
+  const del=document.createElement('button');del.className='btn danger';del.textContent='Xóa';del.onclick=()=>{if(confirm('Xóa hồ sơ này?')){records=records.filter(r=>r.id!==x.id);persist()}};
+  actions.append(cp,open,status,del);el.append(actions);$('reports').append(el);
+ });
+}
+function page(name){['create','history','admin'].forEach(p=>$('page-'+p).classList.toggle('hidden',p!==name));document.querySelectorAll('[data-page]').forEach(b=>{b.classList.toggle('primary',b.dataset.page===name)});if(name==='history'||name==='admin')render()}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset.page));
+document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>{page(b.dataset.goto);window.scrollTo({top:0,behavior:'smooth'})});
+function makeDraft(){
+ const account=$('account').value.trim(),url=$('profile').value.trim(),facts=$('facts').value.trim();
+ if(!account||!url||!facts){alert('Vui lòng nhập tên tài khoản, liên kết và mô tả sự việc.');return ''}
+ try{new URL(url)}catch(e){alert('Liên kết chưa đúng định dạng URL.');return ''}
+ return `Kính gửi Meta Support Team,\\n\\nTôi muốn gửi báo cáo để Meta xem xét một nội dung/tài khoản có thông tin sau:\\n\\nTên tài khoản: ${account}\\nLiên kết: ${url}\\nDanh mục vấn đề: ${$('category').value}\\nNgười/tổ chức bị ảnh hưởng: ${$('affected').value.trim()||'Không cung cấp'}\\n\\nMô tả sự việc và bằng chứng:\\n${facts}\\n\\nKính đề nghị Meta xem xét thông tin, đối chiếu bằng chứng và áp dụng biện pháp phù hợp nếu xác định có vi phạm chính sách. Tôi sẵn sàng cung cấp thêm thông tin khi cần thiết.\\n\\nTôi xác nhận nội dung báo cáo được cung cấp trung thực theo hiểu biết của mình.\\n\\nTrân trọng.`;
+}
+$('generate').onclick=()=>{draft=makeDraft();if(draft){$('result').textContent=draft;$('result-wrap').classList.remove('hidden')}};
+$('copy').onclick=()=>copyText(draft);
+function copyText(t){if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(()=>alert('Đã sao chép nội dung.')).catch(()=>fallbackCopy(t));else fallbackCopy(t)}
+function fallbackCopy(t){const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();document.execCommand('copy');a.remove();alert('Đã sao chép nội dung.')}
+$('save').onclick=()=>{if(!draft)return;records.unshift({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),account:$('account').value.trim(),url:$('profile').value.trim(),category:$('category').value,content:draft,status:'Chưa gửi',created:new Date().toISOString()});persist();alert('Đã lưu hồ sơ trên trình duyệt.');page('history')};
+$('clear').onclick=()=>{['account','profile','affected','facts'].forEach(id=>$(id).value='');$('result-wrap').classList.add('hidden');draft=''};
+$('filter').onchange=render;
+$('export').onclick=()=>download('facebook-report-history.csv','\ufeff'+['Tên tài khoản,Liên kết,Danh mục,Trạng thái,Ngày tạo',...records.map(x=>[x.account,x.url,x.category,x.status,x.created].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(','))].join('\n'),'text/csv;charset=utf-8');
+$('backup').onclick=()=>download('facebook-report-backup.json',JSON.stringify(records,null,2),'application/json');
+$('delete-all').onclick=()=>{if(confirm('Bạn chắc chắn muốn xóa toàn bộ hồ sơ đã lưu trên trình duyệt này?')){records=[];persist()}};
+function download(name,data,type){const blob=new Blob([data],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+const mini=$('mini');$('minimize').onclick=()=>mini.classList.toggle('minimized');$('expand').onclick=()=>{mini.classList.remove('minimized');window.scrollTo({top:0,behavior:'smooth'})};$('close').onclick=()=>mini.classList.add('hidden');
+let drag=null;
+$('dragbar').addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=mini.getBoundingClientRect();drag={x:e.clientX-r.left,y:e.clientY-r.top};$('dragbar').setPointerCapture(e.pointerId)});
+$('dragbar').addEventListener('pointermove',e=>{if(!drag)return;let x=Math.max(0,Math.min(innerWidth-mini.offsetWidth,e.clientX-drag.x)),y=Math.max(0,Math.min(innerHeight-45,e.clientY-drag.y));mini.style.left=x+'px';mini.style.top=y+'px';mini.style.right='auto';mini.style.bottom='auto'});
+$('dragbar').addEventListener('pointerup',()=>drag=null);$('dragbar').addEventListener('pointercancel',()=>drag=null);
+render();
+</script>
+</body></html>
